@@ -1,0 +1,336 @@
+---
+title: "TFM"
+author: "Carlos Morata Guirado"
+date: '2022-06-11'
+output: html_document
+---
+
+```{r}
+library(readxl)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+```
+
+
+```{r}
+df <- read_excel("Results_3.xlsx")
+```
+
+#sr
+
+```{r}
+df %>% ggplot(aes(`Step rate`, `Sr OpenPose`)) + geom_point() + 
+  scale_x_continuous(limit=c(150,200)) + 
+  scale_y_continuous(limit=c(150,200)) + 
+  geom_abline(slope=1, intercept=0, colour = "blue") +
+  labs(y= "Estimation (steps/min)", x = "Ground truth (steps/min)")
+
+```
+
+```{r}
+cor.test(df$`Step rate`, df$`Sr mean`, method="pearson")
+```
+
+```{r}
+error <- df$`Sr mean` - df$`Step rate`
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df$`Sr mean`,error, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error",
+     xlim=c(150,200))
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(error, col='BLUE')
+qqline(error)
+```
+
+```{r}
+shapiro.test(error)
+```
+
+
+
+#ctl
+
+
+```{r}
+dat <- df %>% reshape2::melt(id.vars="Contact time L", 
+                      measure.vars=c("Ctl OpenPose", "Ctl MediaPipe", 
+                                     "Ctl mean"))
+
+colnames(dat)[2] <- "Model"
+
+dat %>% ggplot(aes(`Contact time L`, value, color=Model)) + geom_point() + 
+#  scale_x_continuous(limit=c(150,200)) + 
+#  scale_y_continuous(limit=c(150,200)) + 
+  geom_abline(slope=1, intercept=0, colour = "black") +
+  labs(y= "Estimation (ms)", x = "Ground truth (ms)")
+```
+
+
+```{r}
+cor.test(df$`Contact time L`, df$`Ctl OpenPose`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Contact time L`, df$`Ctl MediaPipe`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Contact time L`, df$`Ctl mean`, method="pearson")
+```
+
+
+Mirar aquí la diferencia entre las dos poblaciones
+
+
+```{r}
+error1 <- df[1:17,]$`Ctl mean` - df[1:17,]$`Contact time L`
+error2 <- df[18:nrow(df),]$`Ctl mean` - df[18:nrow(df),]$`Contact time L`
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df[1:17,]$`Ctl mean`,error1, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(error1, col='BLUE')
+qqline(error1)
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df[18:nrow(df),]$`Ctl mean`,error2, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(error2, col='BLUE')
+qqline(error2)
+```
+
+Los valores muy altos se queda corto
+Muy bien en "train" exceptuando un valor que no hace una buena predicción
+
+
+
+#ctr
+
+
+```{r}
+dat <- df %>% reshape2::melt(id.vars="Contact time R", 
+                      measure.vars=c("Ctr OpenPose", "Ctr MediaPipe", 
+                                     "Ctr mean"))
+
+colnames(dat)[2] <- "Model"
+
+dat %>% ggplot(aes(`Contact time R`, value, color=Model)) + geom_point() + 
+#  scale_x_continuous(limit=c(150,200)) + 
+#  scale_y_continuous(limit=c(150,200)) + 
+  geom_abline(slope=1, intercept=0, colour = "black") +
+  labs(y= "Estimation (ms)", x = "Ground truth (ms)")
+```
+
+
+```{r}
+cor.test(df$`Contact time R`, df$`Ctr OpenPose`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Contact time R`, df$`Ctr MediaPipe`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Contact time R`, df$`Ctr mean`, method="pearson")
+```
+
+
+
+Mirar aquí la diferencia entre las dos poblaciones
+
+```{r}
+error1 <- df[1:17,]$`Ctl mean` - df[1:17,]$`Contact time L`
+error2 <- df[18:nrow(df),]$`Ctl mean` - df[18:nrow(df),]$`Contact time L`
+```
+
+```{r}
+sqrt(mean((error1^2)))
+mean(abs(error1))
+sqrt(mean((error2^2)))
+mean(abs(error2))
+```
+
+```{r}
+cor.test(df[1:17,]$`Contact time L`, df[1:17,]$`Ctl mean`, method="pearson")
+cor.test(df[18:nrow(df),]$`Contact time L`, df[18:nrow(df),]$`Ctl mean`, method="pearson")
+```
+
+
+```{r}
+error1 <- df[1:17,]$`Ctr mean` - df[1:17,]$`Contact time R`
+error2 <- df[18:nrow(df),]$`Ctr mean` - df[18:nrow(df),]$`Contact time R`
+```
+
+```{r}
+sqrt(mean((error1^2)))
+mean(abs(error1))
+sqrt(mean((error2^2)))
+mean(abs(error2))
+```
+
+```{r}
+cor.test(df[1:17,]$`Contact time R`, df[1:17,]$`Ctr mean`, method="pearson")
+cor.test(df[18:nrow(df),]$`Contact time R`, df[18:nrow(df),]$`Ctr mean`, method="pearson")
+```
+
+
+```{r}
+dat <- df %>% reshape2::melt(id.vars="Contact time R", 
+                      measure.vars=c("Ctr OpenPose", "Ctr MediaPipe", 
+                                     "Ctr mean"))
+
+colnames(dat)[2] <- "Modelo"
+
+# diagnóstico linealidad y homocedasticidad
+plot(df[1:17,]$`Ctr mean`,error1, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(error1, col='BLUE')
+qqline(error1)
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df[18:nrow(df),]$`Ctr mean`,error2, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(error2, col='BLUE')
+qqline(error2)
+```
+
+```{r}
+errorl <- df$`Ctl mean` - df$`Contact time L`
+errorr <- df$`Ctr mean` - df$`Contact time R`
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df$`Ctl mean`,errorl, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(errorl, col='BLUE')
+qqline(errorl)
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df$`Ctr mean`,errorr, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(errorr, col='BLUE')
+qqline(errorr)
+```
+
+
+#flight time
+
+
+```{r}
+df %>% ggplot(aes(`Contact time L`, `Flight Ratio L`)) + geom_point() + 
+  geom_abline(slope=1, intercept=0, colour = "blue") +
+  labs(y= "Estimation (pasos/min)", x = " (pasos/min)")
+```
+
+```{r}
+cor.test(df$`Contact time L`, df$`Flight Ratio L`, method="pearson")
+```
+
+
+```{r}
+df %>% ggplot(aes(`Contact time R`, `Flight Ratio R`)) + geom_point() + 
+  geom_abline(slope=1, intercept=0, colour = "blue") +
+  labs(y= "Estimation (pasos/min)", x = "Ground truth (pasos/min)")
+```
+
+```{r}
+cor.test(df$`Contact time R`, df$`Flight Ratio R`, method="pearson")
+```
+
+
+
+```{r}
+cor.test(df$`Flight Ratio L`, df$`Frl OpenPose`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Flight Ratio L`, df$`Frl MediaPipe`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Flight Ratio L`, df$`Frl mean`, method="pearson")
+```
+
+
+
+```{r}
+cor.test(df$`Flight Ratio R`, df$`Frr OpenPose`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Flight Ratio R`, df$`Frr MediaPipe`, method="pearson")
+```
+
+
+```{r}
+cor.test(df$`Flight Ratio R`, df$`Frr mean`, method="pearson")
+```
+
+
+```{r}
+errorl <- df$`Frl mean` - df$`Flight Ratio L`
+errorr <- df$`Frr mean` - df$`Flight Ratio R`
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df$`Frl mean`,errorl, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(errorl, col='BLUE')
+qqline(errorl)
+```
+
+```{r}
+# diagnóstico linealidad y homocedasticidad
+plot(df$`Frr mean`,errorr, col='BLUE',main = 'Gráfica de residuos',
+     xlab = "Estimation",
+     ylab = "Error")
+abline(h=0,lty=2)
+# diagnóstico normalidad residuos
+qqnorm(errorr, col='BLUE')
+qqline(errorr)
+```
+

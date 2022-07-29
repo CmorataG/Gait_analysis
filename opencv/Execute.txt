@@ -1,0 +1,1 @@
+build\x64\Release\OpenPoseDemo.exe --video ..\..\Videos\Input\videos_12_mayo\Carmen_10kmh.mp4 --write_json ..\..\Videos\Output_Json\Carmen_12kmh --display 0 --render_pose 0
